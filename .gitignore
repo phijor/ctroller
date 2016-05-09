@@ -1,0 +1,13 @@
+# binaries
+*.elf
+*.3dsx
+*.smdh
+linux/ctroller
+
+# build directories
+3DS/build
+linux/build
+linux/bin
+
+# misc files
+.ycm_extra_conf.pyc

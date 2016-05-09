@@ -26,8 +26,11 @@ the `debug` target for development.
 
 ## Installation
 
-1. Install the server to your system by running `make install`. This is equivalent
-to:
+If you are using Arch Linux,
+[here's](https://aur.archlinux.org/packages/ctroller-git/) the AUR package.
+
+1. Install the server to your system by running `make install`. This is
+   equivalent to:
 ```bash
 $ cd linux
 $ make install DESTDIR="/" BINDIR="usr/bin"

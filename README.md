@@ -73,3 +73,10 @@ launcher of your choice.
 
 For development purposes, the 3DS-Makefile includes a `run` target that uses
 `3dslink` to upload and run the application using the Homebrew Menu NetLoader.
+
+## Notes
+
+This program is intended to be used in a private network. For simplicity, the
+server right now accepts any connection on it's port, which might pose a
+security risk if others can send data to it. This will be changed in future
+releases. For now, you probably shouldn't be using this in a public network.

@@ -15,7 +15,6 @@ flags = [
 
     '-Wall',
     '-Wextra',
-    '-Werror',
 
     '--sysroot=' + os.path.expandvars('${DEVKITARM}/arm-none-eabi'),
     '-I', os.path.expandvars('${DEVKITARM}/arm-none-eabi/include'),

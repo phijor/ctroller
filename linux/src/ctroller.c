@@ -368,8 +368,10 @@ int ctroller_write_hid_info(struct hidinfo *hid)
     CTROLLER_WRITE_AXIS(events, i, ABS_HAT1X, hid->cstick.dx);
     CTROLLER_WRITE_AXIS(events, i, ABS_HAT1Y, -hid->cstick.dy);
 
-    CTROLLER_WRITE_AXIS(events, i, ABS_X, hid->touchscreen.px);
-    CTROLLER_WRITE_AXIS(events, i, ABS_Y, hid->touchscreen.py);
+    if (HID_HAS_KEY(hid->keys.down | hid->keys.held, HID_KEY_TOUCH)) {
+        CTROLLER_WRITE_AXIS(events, i, ABS_X, hid->touchscreen.px);
+        CTROLLER_WRITE_AXIS(events, i, ABS_Y, hid->touchscreen.py);
+    }
 
 #ifdef USE_GYRO
     CTROLLER_WRITE_AXIS(events, i, REL_RX, hid->gyro.x);

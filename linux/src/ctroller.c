@@ -32,8 +32,6 @@ static const struct keymap {
     uint32_t keymask;
     const char *desc;
 } keymap[] = {
-    {BTN_TOUCH, HID_KEY_TOUCH, "Touch event"},
-
     {BTN_EAST, HID_KEY_A, "A Button"},
     {BTN_SOUTH, HID_KEY_B, "B Button"},
     {BTN_NORTH, HID_KEY_X, "X Button"},

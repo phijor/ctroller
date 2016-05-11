@@ -21,9 +21,6 @@
 
 #define PORT "15708"
 
-/* Uncomment if you want to see the Gyroscope spam evtest's output. */
-// #define USE_GYRO
-
 static int ctroller_socket        = 0;
 static int ctroller_uinput_device = 0;
 
@@ -62,18 +59,10 @@ static const struct axis {
     uint16_t axiscode;
     const char *desc;
 } axis[] = {
-    {ABS_HAT0X, "Circlepad X-Axis"},
-    {ABS_HAT0Y, "Circlepad Y-Axis"},
-    {ABS_HAT1X, "C-Stick X-Axis"},
-    {ABS_HAT1Y, "C-Stick Y-Axis"},
-    {ABS_X, "Touchscreen X-Axis"},
-    {ABS_Y, "Touchscreen Y-Axis"},
-
-#ifdef USE_GYRO
-    {REL_RX, "Gyroscope X-Axis"},
-    {REL_RY, "Gyroscope Y-Axis"},
-    {REL_RZ, "Gyroscope Z-Axis"},
-#endif // USE_GYRO
+    {ABS_X, "Circlepad X-Axis"},
+    {ABS_Y, "Circlepad Y-Axis"},
+    {ABS_RX, "C-Stick X-Axis"},
+    {ABS_RY, "C-Stick Y-Axis"},
 };
 #define NUMAXIS (sizeof(axis) / sizeof(axis[0]))
 #define NUMEVENTS (NUMKEYS + NUMAXIS + 1)
@@ -197,37 +186,26 @@ int ctroller_uinput_init()
             },
 
         // Circlepad
-        .absmin[ABS_HAT0X]  = -0x9c,
-        .absmax[ABS_HAT0X]  = 0x9c,
-        .absflat[ABS_HAT0X] = 10,
-        .absfuzz[ABS_HAT0X] = 3,
+        .absmin[ABS_X]  = -0x9c,
+        .absmax[ABS_X]  = 0x9c,
+        .absflat[ABS_X] = 10,
+        .absfuzz[ABS_X] = 3,
 
-        .absmin[ABS_HAT0Y]  = -0x9c,
-        .absmax[ABS_HAT0Y]  = 0x9c,
-        .absflat[ABS_HAT0Y] = 10,
-        .absfuzz[ABS_HAT1Y] = 3,
+        .absmin[ABS_Y]  = -0x9c,
+        .absmax[ABS_Y]  = 0x9c,
+        .absflat[ABS_Y] = 10,
+        .absfuzz[ABS_Y] = 3,
 
         // C-Stick
-        .absmin[ABS_HAT1X]  = -0x9c,
-        .absmax[ABS_HAT1X]  = 0x9c,
-        .absflat[ABS_HAT1X] = 10,
-        .absfuzz[ABS_HAT1X] = 3,
+        .absmin[ABS_RX]  = -0x9c,
+        .absmax[ABS_RX]  = 0x9c,
+        .absflat[ABS_RX] = 10,
+        .absfuzz[ABS_RX] = 3,
 
-        .absmin[ABS_HAT1Y]  = -0x9c,
-        .absmax[ABS_HAT1Y]  = 0x9c,
-        .absflat[ABS_HAT1Y] = 10,
-        .absfuzz[ABS_HAT0Y] = 3,
-
-        // Touchscreen
-        .absmin[ABS_X]  = 0,
-        .absmax[ABS_X]  = 320,
-        .absflat[ABS_X] = 0,
-        .absfuzz[ABS_X] = 0,
-
-        .absmin[ABS_Y]  = 0,
-        .absmax[ABS_Y]  = 240,
-        .absflat[ABS_Y] = 0,
-        .absfuzz[ABS_Y] = 0,
+        .absmin[ABS_RY]  = -0x9c,
+        .absmax[ABS_RY]  = 0x9c,
+        .absflat[ABS_RY] = 10,
+        .absfuzz[ABS_RY] = 3,
     };
 
     res = write(uinputfd, &dev3ds, sizeof(dev3ds));
@@ -362,22 +340,11 @@ int ctroller_write_hid_info(struct hidinfo *hid)
         idx++;                                                                 \
     } while (0)
 
-    CTROLLER_WRITE_AXIS(events, i, ABS_HAT0X, hid->circlepad.dx);
-    CTROLLER_WRITE_AXIS(events, i, ABS_HAT0Y, -hid->circlepad.dy);
+    CTROLLER_WRITE_AXIS(events, i, ABS_X, hid->circlepad.dx);
+    CTROLLER_WRITE_AXIS(events, i, ABS_Y, -hid->circlepad.dy);
 
-    CTROLLER_WRITE_AXIS(events, i, ABS_HAT1X, hid->cstick.dx);
-    CTROLLER_WRITE_AXIS(events, i, ABS_HAT1Y, -hid->cstick.dy);
-
-    if (HID_HAS_KEY(hid->keys.down | hid->keys.held, HID_KEY_TOUCH)) {
-        CTROLLER_WRITE_AXIS(events, i, ABS_X, hid->touchscreen.px);
-        CTROLLER_WRITE_AXIS(events, i, ABS_Y, hid->touchscreen.py);
-    }
-
-#ifdef USE_GYRO
-    CTROLLER_WRITE_AXIS(events, i, REL_RX, hid->gyro.x);
-    CTROLLER_WRITE_AXIS(events, i, REL_RY, hid->gyro.y);
-    CTROLLER_WRITE_AXIS(events, i, REL_RZ, hid->gyro.z);
-#endif // USE_GYRO
+    CTROLLER_WRITE_AXIS(events, i, ABS_RX, hid->cstick.dx);
+    CTROLLER_WRITE_AXIS(events, i, ABS_RY, -hid->cstick.dy);
 
 #undef CTROLLER_WRITE_AXIS
 

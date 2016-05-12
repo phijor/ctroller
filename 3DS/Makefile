@@ -35,9 +35,10 @@ INCLUDES	:=	include
 RESOURCES	:=	resources
 ICON		:=	$(RESOURCES)/icon.png
 
-VERSION_MAJOR	:=	0
-VERSION_MINOR	:=	1
-VERSION_PATCH	:=	0
+VERSION_STRING	:=	$(subst ., ,$(shell git describe --tags | grep -o '^[0-9]\+\.[0-9]\+\.[0-9]\+'))
+VERSION_MAJOR	:=	$(word 1,$(VERSION_STRING))
+VERSION_MINOR	:=	$(word 2,$(VERSION_STRING))
+VERSION_PATCH	:=	$(word 3,$(VERSION_STRING))
 
 APP_TITLE	:=	$(TARGET)
 APP_DESCRIPTION	:=	Use your 3DS as PC gamepad

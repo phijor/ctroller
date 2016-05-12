@@ -16,9 +16,7 @@ PrintConsole debug;
 
 void util_hang(Result res)
 {
-    util_debug_printf("An error occured (0x%08lx).\n"
-                      "Press START to exit.\n",
-                      (long) res);
+    util_presult("Press START to exit.\n", res);
     while (1) {
         hidScanInput();
 

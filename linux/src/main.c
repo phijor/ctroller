@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     (void) argc, (void) argv;
     int res = EXIT_SUCCESS;
 
-    if (ctroller_init() == -1) {
+    if (ctroller_init(NULL) == -1) {
         perror("Error initializing ctroller");
         exit(EXIT_FAILURE);
     }

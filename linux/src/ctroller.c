@@ -65,7 +65,7 @@ static const struct axis {
 #define NUMAXIS (sizeof(axis) / sizeof(axis[0]))
 #define NUMEVENTS (NUMKEYS + NUMAXIS + 1)
 
-int ctroller_init()
+int ctroller_init(const char *uinput_device)
 {
     int res;
     if ((res = ctroller_listener_init()) < 0) {
@@ -73,7 +73,7 @@ int ctroller_init()
         return res;
     }
 
-    if ((res = ctroller_uinput_init()) < 0) {
+    if ((res = ctroller_uinput_init(uinput_device)) < 0) {
         fprintf(stderr, "Failed to create virtual device.\n");
         ctroller_exit();
         return res;
@@ -132,12 +132,19 @@ int ctroller_listener_init()
     return 0;
 }
 
-int ctroller_uinput_init()
+int ctroller_uinput_init(const char *uinput_device)
 {
-    int res      = 0;
-    int uinputfd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+    int res = 0;
+
+    if (uinput_device == NULL) {
+        uinput_device = UINPUT_DEFAULT_DEVICE;
+    }
+    int uinputfd = open(uinput_device, O_WRONLY | O_NONBLOCK);
     if (uinputfd < 0) {
-        perror("Error opening uinput device");
+        fprintf(stderr,
+                "Error opening uinput device at '%s': %s\n",
+                uinput_device,
+                strerror(errno));
         return -1;
     }
 

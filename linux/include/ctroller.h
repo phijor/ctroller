@@ -9,11 +9,13 @@
 #define PACKET_VERSION 0x0001
 #define PACKET_SIZE (2 * sizeof(uint16_t) + sizeof(struct hidinfo))
 
+#define UINPUT_DEFAULT_DEVICE "/dev/uinput"
+
 typedef unsigned char packet_hid_t[PACKET_SIZE];
 
-int ctroller_init(void);
+int ctroller_init(const char *uinput_device);
 int ctroller_listener_init();
-int ctroller_uinput_init();
+int ctroller_uinput_init(const char *uinput_device);
 
 void ctroller_exit(void);
 

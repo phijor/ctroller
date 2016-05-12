@@ -63,9 +63,14 @@ $ make release
 ## Running
 
 Start the server by running:
-
 ```bash
 $ ./linux/ctroller
+```
+
+Usage:
+```
+  -h  --help                   print this help text
+  -u  --uinput-device=<path>   uinput character device (defaults to /dev/uinput)
 ```
 
 Then launch the *ctroller.3dsx* application on your 3DS using a homebrew

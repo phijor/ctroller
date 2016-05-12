@@ -16,10 +16,16 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE
+#include <features.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+
+#include <errno.h>
+#include <getopt.h>
 
 #include "ctroller.h"
 #include "hid.h"
@@ -32,12 +38,63 @@ void on_terminate(int signum)
     exit(EXIT_SUCCESS);
 }
 
+void print_usage(void)
+{
+    printf("Usage:\n");
+    printf("  %s [<switches>]\n", program_invocation_short_name);
+    printf("\n");
+
+    printf("<switches>:\n");
+#define print_opt(shortopt, longopt, desc)                                     \
+    printf("  -%-1s  --%-22s " desc, shortopt, longopt)
+
+    print_opt("h", "help", "print this help text\n");
+    print_opt("u",
+              "uinput-device=<path>",
+              "uinput character "
+              "device (defaults to " UINPUT_DEFAULT_DEVICE ")\n");
+#undef print_opt
+}
+
 int main(int argc, char *argv[])
 {
-    (void) argc, (void) argv;
     int res = EXIT_SUCCESS;
 
-    if (ctroller_init(NULL) == -1) {
+    struct options {
+        char *uinput_device;
+    } options          = {
+        .uinput_device = NULL,
+    };
+
+    // clang-format off
+    const struct option optstrings[] = {
+        {"help",            no_argument,       NULL, 'h'},
+        {"uinput-device",   required_argument, NULL, 'u'},
+        {NULL,              0,                 NULL, 0},
+    };
+    // clang-format on
+
+    int index = 0;
+    int curopt;
+    while ((curopt = getopt_long(argc, argv, "hu:", optstrings, &index)) !=
+           -1) {
+        switch (curopt) {
+        case 0:
+            break;
+        case 'h':
+            print_usage();
+            return EXIT_SUCCESS;
+        case 'u':
+            options.uinput_device = optarg;
+            printf("uinput device: %s\n", optarg);
+            break;
+        case '?':
+            print_usage();
+            return EXIT_FAILURE;
+        }
+    }
+
+    if (ctroller_init(options.uinput_device) == -1) {
         perror("Error initializing ctroller");
         exit(EXIT_FAILURE);
     }

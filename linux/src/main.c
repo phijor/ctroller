@@ -24,7 +24,8 @@
 #include "ctroller.h"
 #include "hid.h"
 
-void on_terminate(int signum) {
+void on_terminate(int signum)
+{
     (void) signum;
     puts("Exiting...");
     ctroller_exit();
@@ -42,7 +43,7 @@ int main(int argc, char *argv[])
     }
 
     if (signal(SIGINT, on_terminate) == SIG_ERR) {
-        fprintf(stderr, "Failed to register SIGTERM handler.\n");
+        fprintf(stderr, "Failed to register SIGINT handler.\n");
     }
 
     printf("Waiting for incoming packets...\n");

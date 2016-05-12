@@ -7,7 +7,7 @@
 
 #define PACKET_MAGIC 0x3d5c
 #define PACKET_VERSION 0x0001
-#define PACKET_SIZE (2*sizeof(uint16_t) + sizeof(struct hidinfo))
+#define PACKET_SIZE (2 * sizeof(uint16_t) + sizeof(struct hidinfo))
 
 typedef unsigned char packet_hid_t[PACKET_SIZE];
 

@@ -80,11 +80,11 @@ int main(int argc, char **argv)
     u32 wifi = 0;
     if (R_FAILED(res = ACU_GetWifiStatus(&wifi))) {
         util_presult("ACU_GetWifiStatus failed", res);
-        util_debug_printf("Did you enable Wifi?\n");
+        fprintf(stderr, "Did you enable Wifi?\n");
         goto failure;
     }
     if (!wifi) {
-        util_debug_printf("Wifi disabled.\n");
+        fprintf(stderr, "Wifi disabled.\n");
         goto failure;
     }
 
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     }
 
     if (R_FAILED(res = ctrollerInit())) {
-        puts("Do you have a valid IP in\n '" CFG_FILE "'?");
+        fprintf(stderr, "Do you have a valid IP in\n '" CFG_FILE "'?");
         goto failure;
     }
 

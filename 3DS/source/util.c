@@ -17,7 +17,7 @@ PrintConsole debug;
 void util_hang(Result res)
 {
     fprintf(stderr, "Press START to exit.\n");
-    util_debug_printf("Will exit with status 0x%08x.\n", res);
+    util_debug_printf("Will exit with status 0x%08x.\n", (unsigned int) res);
     while (1) {
         hidScanInput();
 

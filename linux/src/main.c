@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (ctroller_init(options.uinput_device) == -1) {
+    if (ctroller_init(options.uinput_device, NULL) == -1) {
         perror("Error initializing ctroller");
         exit(EXIT_FAILURE);
     }

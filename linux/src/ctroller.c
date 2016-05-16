@@ -19,8 +19,6 @@
 
 #include "hid.h"
 
-#define PORT "15708"
-
 static int ctroller_socket        = 0;
 static int ctroller_uinput_device = 0;
 
@@ -65,10 +63,10 @@ static const struct axis {
 #define NUMAXIS (sizeof(axis) / sizeof(axis[0]))
 #define NUMEVENTS (NUMKEYS + NUMAXIS + 1)
 
-int ctroller_init(const char *uinput_device)
+int ctroller_init(const char *uinput_device, const char *port)
 {
     int res;
-    if ((res = ctroller_listener_init()) < 0) {
+    if ((res = ctroller_listener_init(port)) < 0) {
         fprintf(stderr, "Failed to initialize listener.\n");
         return res;
     }
@@ -81,7 +79,7 @@ int ctroller_init(const char *uinput_device)
     return 0;
 }
 
-int ctroller_listener_init()
+int ctroller_listener_init(const char *port)
 {
     int res;
 
@@ -91,8 +89,12 @@ int ctroller_listener_init()
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags    = AI_PASSIVE;
 
+    if (port == NULL) {
+        port = PORT_DEFAULT;
+    }
+
     struct addrinfo *ctroller_info;
-    if ((res = getaddrinfo(NULL, PORT, &hints, &ctroller_info))) {
+    if ((res = getaddrinfo(NULL, port, &hints, &ctroller_info))) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(res));
         return -1;
     }
@@ -128,7 +130,7 @@ int ctroller_listener_init()
 
     freeaddrinfo(ctroller_info);
 
-    puts("Listening on port " PORT ".");
+    printf("Listening on port %s.\n", port);
     return 0;
 }
 

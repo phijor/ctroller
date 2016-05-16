@@ -69,6 +69,7 @@ $ ./linux/ctroller
 
 Usage:
 ```
+  -d  --daemonize              execute in background
   -h  --help                   print this help text
   -u  --uinput-device=<path>   uinput character device (defaults to /dev/uinput)
 ```

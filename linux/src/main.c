@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include <getopt.h>
+#include <unistd.h>
 
 #include "ctroller.h"
 #include "hid.h"
@@ -48,6 +49,7 @@ void print_usage(void)
 #define print_opt(shortopt, longopt, desc)                                     \
     printf("  -%-1s  --%-22s " desc, shortopt, longopt)
 
+    print_opt("d", "daemonize", "execute in background\n");
     print_opt("h", "help", "print this help text\n");
     print_opt("u",
               "uinput-device=<path>",
@@ -62,12 +64,15 @@ int main(int argc, char *argv[])
 
     struct options {
         char *uinput_device;
-    } options          = {
+        int daemonize;
+    } options = {
         .uinput_device = NULL,
+        .daemonize     = 0,
     };
 
     // clang-format off
-    const struct option optstrings[] = {
+    static const struct option optstrings[] = {
+        {"daemonize",       no_argument,       NULL, 'd'},
         {"help",            no_argument,       NULL, 'h'},
         {"uinput-device",   required_argument, NULL, 'u'},
         {NULL,              0,                 NULL, 0},
@@ -76,10 +81,13 @@ int main(int argc, char *argv[])
 
     int index = 0;
     int curopt;
-    while ((curopt = getopt_long(argc, argv, "hu:", optstrings, &index)) !=
+    while ((curopt = getopt_long(argc, argv, "dhu:", optstrings, &index)) !=
            -1) {
         switch (curopt) {
         case 0:
+            break;
+        case 'd':
+            options.daemonize = 1;
             break;
         case 'h':
             print_usage();
@@ -91,6 +99,14 @@ int main(int argc, char *argv[])
         case '?':
             print_usage();
             return EXIT_FAILURE;
+        }
+    }
+
+    if (options.daemonize) {
+        printf("Daemonizing %s...\n", program_invocation_short_name);
+        res = daemon(1, 1);
+        if (res == -1) {
+            perror("Failed to daemonize process");
         }
     }
 

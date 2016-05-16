@@ -51,6 +51,9 @@ void print_usage(void)
 
     print_opt("d", "daemonize", "execute in background\n");
     print_opt("h", "help", "print this help text\n");
+    print_opt("p",
+              "port=<num>",
+              "listen on port 'num' (defaults to " PORT_DEFAULT ")\n");
     print_opt("u",
               "uinput-device=<path>",
               "uinput character "
@@ -62,18 +65,21 @@ int main(int argc, char *argv[])
 {
     int res = EXIT_SUCCESS;
 
+    // clang-format off
     struct options {
         char *uinput_device;
+        char *port;
         int daemonize;
     } options = {
         .uinput_device = NULL,
+        .port          = NULL,
         .daemonize     = 0,
     };
 
-    // clang-format off
     static const struct option optstrings[] = {
         {"daemonize",       no_argument,       NULL, 'd'},
         {"help",            no_argument,       NULL, 'h'},
+        {"port",            required_argument, NULL, 'p'},
         {"uinput-device",   required_argument, NULL, 'u'},
         {NULL,              0,                 NULL, 0},
     };
@@ -81,7 +87,7 @@ int main(int argc, char *argv[])
 
     int index = 0;
     int curopt;
-    while ((curopt = getopt_long(argc, argv, "dhu:", optstrings, &index)) !=
+    while ((curopt = getopt_long(argc, argv, "dhp:u:", optstrings, &index)) !=
            -1) {
         switch (curopt) {
         case 0:
@@ -92,6 +98,9 @@ int main(int argc, char *argv[])
         case 'h':
             print_usage();
             return EXIT_SUCCESS;
+        case 'p':
+            options.port = optarg;
+            break;
         case 'u':
             options.uinput_device = optarg;
             printf("uinput device: %s\n", optarg);
@@ -110,7 +119,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (ctroller_init(options.uinput_device, NULL) == -1) {
+    if (ctroller_init(options.uinput_device, options.port) == -1) {
         perror("Error initializing ctroller");
         exit(EXIT_FAILURE);
     }

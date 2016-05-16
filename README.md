@@ -71,6 +71,7 @@ Usage:
 ```
   -d  --daemonize              execute in background
   -h  --help                   print this help text
+  -p  --port=<num>             listen on port 'num' (defaults to 15708)
   -u  --uinput-device=<path>   uinput character device (defaults to /dev/uinput)
 ```
 

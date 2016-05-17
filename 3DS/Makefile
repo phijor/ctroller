@@ -149,7 +149,7 @@ ifneq ($(ROMFS),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all run install
+.PHONY: $(BUILD) clean all run install dist
 
 #---------------------------------------------------------------------------------
 all: release
@@ -175,7 +175,8 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@$(call bold,"Cleaning...")
-	@rm -fr $(BUILD) $(OUTPUT).3dsx $(OUTPUT).smdh $(OUTPUT).elf $(OUTPUT).cia
+	@rm -fr $(BUILD) $(OUTPUT).{3dsx,smdh,elf,cia} \
+		$(TARGET)-$(VERSION_STRING).tar{,.gz}
 
 #---------------------------------------------------------------------------------
 run: debug
@@ -200,6 +201,12 @@ $(OUTPUT).cia: $(BUILD)
 		-target t -exefslogo -elf $(OUTPUT).elf \
 		-icon $(ICON_TMP) -banner $(BANNER_TMP)
 	@echo "Created CIA \"$@\""
+
+#---------------------------------------------------------------------------------
+dist: release
+	@$(call bold,"Creating distribution-tarball ($(VERSION_STRING))...")
+	@tar -cvf $(TARGET)-$(VERSION_STRING).tar $(TARGET).{cia,3dsx,smdh}
+	@gzip -f $(TARGET)-$(VERSION_STRING).tar
 
 #---------------------------------------------------------------------------------
 else

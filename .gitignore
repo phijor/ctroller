@@ -9,3 +9,6 @@ linux/ctroller
 3DS/build
 linux/build
 linux/bin
+
+# build files
+*.gz

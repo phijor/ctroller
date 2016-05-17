@@ -5,14 +5,12 @@ BasicInfo:
 
 TitleInfo:
   Category                : Application
-  # UniqueId                : 863002176874468
   UniqueId                : 0xF3D5C
 
 Option:
   UseOnSD                 : true # true if App is to be installed to SD
   FreeProductCode         : true # Removes limitations on ProductCode
   MediaFootPadding        : false # If true CCI files are created with padding
-  EnableCrypt             : $(APP_ENCRYPTED) # Enables encryption for NCCH and CIA
   EnableCrypt             : $(APP_ENCRYPTED) # Enables encryption for NCCH and CIA
   EnableCompress          : false # Compresses where applicable (currently only exefs:/.code)
 

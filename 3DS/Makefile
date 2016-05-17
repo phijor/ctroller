@@ -37,10 +37,10 @@ ICON		:=	$(RESOURCES)/icon.png
 BANNER		:=	$(RESOURCES)/banner.png
 AUDIO		:=	$(RESOURCES)/audio.wav
 
-VERSION_STRING	:=	$(subst ., ,$(shell git describe --tags | grep -o '^[0-9]\+\.[0-9]\+\.[0-9]\+'))
-VERSION_MAJOR	:=	$(word 1,$(VERSION_STRING))
-VERSION_MINOR	:=	$(word 2,$(VERSION_STRING))
-VERSION_PATCH	:=	$(word 3,$(VERSION_STRING))
+VERSION_STRING	:=	$(shell git describe --tags --abbrev=0)
+VERSION_MAJOR	:=	$(word 1,$(subst ., ,$(VERSION_STRING)))
+VERSION_MINOR	:=	$(word 2,$(subst ., ,$(VERSION_STRING)))
+VERSION_PATCH	:=	$(word 3,$(subst ., ,$(VERSION_STRING)))
 
 APP_TITLE	:=	$(TARGET)
 APP_DESCRIPTION	:=	Use your 3DS as PC gamepad
@@ -149,7 +149,7 @@ ifneq ($(ROMFS),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(BUILD) clean all run install
 
 #---------------------------------------------------------------------------------
 all: release
@@ -165,30 +165,33 @@ debug: export APP_TITLE := $(addsuffix -debug, $(APP_TITLE))
 debug: $(BUILD)
 
 #---------------------------------------------------------------------------------
+bold = echo -e "\e[1m"$(1)"\e[0m"
+#---------------------------------------------------------------------------------
 $(BUILD):
+	@$(call bold,"Compiling binaries...")
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) -e --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
-	@echo clean ...
+	@$(call bold,"Cleaning...")
 	@rm -fr $(BUILD) $(OUTPUT).3dsx $(OUTPUT).smdh $(OUTPUT).elf $(OUTPUT).cia
 
 #---------------------------------------------------------------------------------
 run: debug
-	@echo running ...
+	@$(call bold,"Running...")
 	@3dslink -r 5 -a $(DSIP) $(OUTPUT).3dsx || true
 
 #---------------------------------------------------------------------------------
 install: release
-	@echo uploading to $(DSIP) ...
+	@$(call bold,"Uploading to $(DSIP)...")
 	@./upload.sh $(DSIP) $(TARGET)
 
 #---------------------------------------------------------------------------------
 $(OUTPUT).cia: BANNER_TMP := $(BUILD)/$(notdir $(BANNER)).bnr
 $(OUTPUT).cia: ICON_TMP := $(BUILD)/$(notdir $(ICON)).icn
 $(OUTPUT).cia: $(BUILD)
-	@echo building CIA ...
+	@$(call bold,"Building CIA...")
 	@bannertool makebanner -i $(BANNER) -a $(AUDIO) -o $(BANNER_TMP)
 	@bannertool makesmdh -s $(APP_TITLE) -l $(APP_TITLE) -p $(APP_AUTHOR) \
 		-i $(ICON) -o $(ICON_TMP)
@@ -196,6 +199,7 @@ $(OUTPUT).cia: $(BUILD)
 		-DAPP_ENCRYPTED=false -DAPP_TITLE="$(APP_TITLE)" \
 		-target t -exefslogo -elf $(OUTPUT).elf \
 		-icon $(ICON_TMP) -banner $(BANNER_TMP)
+	@echo "Created CIA \"$@\""
 
 #---------------------------------------------------------------------------------
 else

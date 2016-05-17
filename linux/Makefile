@@ -24,9 +24,9 @@ RLINK_FLAGS =
 # Additional debug-specific linker settings
 DLINK_FLAGS = 
 # Destination directory, like a jail or mounted system
-DESTDIR = /
+DESTDIR =
 # Install path
-BINDIR = usr/bin
+BINDIR = /usr/bin
 #### END PROJECT SETTINGS ####
 
 # Generally should not need to edit below this line

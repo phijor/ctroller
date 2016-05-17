@@ -9,6 +9,3 @@ linux/ctroller
 3DS/build
 linux/build
 linux/bin
-
-# misc files
-.ycm_extra_conf.pyc

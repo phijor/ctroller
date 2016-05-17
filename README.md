@@ -36,10 +36,14 @@ If you are using Arch Linux,
 
 1. Install the server to your system by running `make install`. This is
    equivalent to:
-```bash
-$ cd linux
-$ make install DESTDIR="/" BINDIR="usr/bin"
-```
+   ```bash
+   $ cd linux
+   $ make install DESTDIR="" BINDIR="/usr/bin"
+   ```
+
+   You can set `DESTDIR` to a install to a different location, i.e.
+   `make DESTDIR="/my/fakeroot/environment"` installs *ctroller* in
+   `/my/fakeroot/environment/usr/bin`.
 
 2. Download the [latest release of the 3DS
    binaries](https://github.com/phijor/ctroller/releases/latest).

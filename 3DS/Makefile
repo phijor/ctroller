@@ -34,6 +34,8 @@ DATA		:=	data
 INCLUDES	:=	include
 RESOURCES	:=	resources
 ICON		:=	$(RESOURCES)/icon.png
+BANNER		:=	$(RESOURCES)/banner.png
+AUDIO		:=	$(RESOURCES)/audio.wav
 
 VERSION_STRING	:=	$(subst ., ,$(shell git describe --tags | grep -o '^[0-9]\+\.[0-9]\+\.[0-9]\+'))
 VERSION_MAJOR	:=	$(word 1,$(VERSION_STRING))
@@ -43,6 +45,7 @@ VERSION_PATCH	:=	$(word 3,$(VERSION_STRING))
 APP_TITLE	:=	$(TARGET)
 APP_DESCRIPTION	:=	Use your 3DS as PC gamepad
 APP_AUTHOR	:=	phijor
+APP_INFO	:=	$(RESOURCES)/AppInfo.rsf
 
 DSHOSTNAME	:= n3ds
 DSIP := $(shell getent hosts $(DSHOSTNAME) | awk '{print $$1}')
@@ -153,7 +156,7 @@ all: release
 
 .PHONY: release
 release: export CFLAGS += $(CFLAGS_RELEASE) $(INCLUDE)
-release: $(BUILD)
+release: $(OUTPUT).cia
 
 #---------------------------------------------------------------------------------
 .PHONY: debug
@@ -169,7 +172,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf
+	@rm -fr $(BUILD) $(OUTPUT).3dsx $(OUTPUT).smdh $(OUTPUT).elf $(OUTPUT).cia
 
 #---------------------------------------------------------------------------------
 run: debug
@@ -180,6 +183,19 @@ run: debug
 install: release
 	@echo uploading to $(DSIP) ...
 	@./upload.sh $(DSIP) $(TARGET)
+
+#---------------------------------------------------------------------------------
+$(OUTPUT).cia: BANNER_TMP := $(BUILD)/$(notdir $(BANNER)).bnr
+$(OUTPUT).cia: ICON_TMP := $(BUILD)/$(notdir $(ICON)).icn
+$(OUTPUT).cia: $(BUILD)
+	@echo building CIA ...
+	@bannertool makebanner -i $(BANNER) -a $(AUDIO) -o $(BANNER_TMP)
+	@bannertool makesmdh -s $(APP_TITLE) -l $(APP_TITLE) -p $(APP_AUTHOR) \
+		-i $(ICON) -o $(ICON_TMP)
+	@makerom -f cia -o $(OUTPUT).cia -rsf $(APP_INFO) \
+		-DAPP_ENCRYPTED=false -DAPP_TITLE="$(APP_TITLE)" \
+		-target t -exefslogo -elf $(OUTPUT).elf \
+		-icon $(ICON_TMP) -banner $(BANNER_TMP)
 
 #---------------------------------------------------------------------------------
 else

@@ -12,6 +12,11 @@ You will need
 [DevkitARM](https://sourceforge.net/projects/devkitpro/files/devkitARM/) and the
 [ctrulib](https://github.com/smealum/ctrulib) to build the 3DS component.
 
+Building the 3DS CIA requires
+[bannertool](https://github.com/Steveice10/bannertool) and
+[makerom](https://github.com/profi200/Project_CTR/tree/master/makerom)
+to be in your `$PATH`.
+
 To run the server, the `uinput` kernel module needs to be loaded:
 
 ```bash
@@ -36,14 +41,21 @@ $ cd linux
 $ make install DESTDIR="/" BINDIR="usr/bin"
 ```
 
-2. build the 3DS application:
-```bash
-$ cd 3DS
-$ make release
-```
+2. Download the [latest release of the 3DS
+   binaries](https://github.com/phijor/ctroller/releases/latest).
 
-3. Copy `3DS/ctroller.{3dsx,smdh}` to `/3ds/ctroller/` on your SD card. You can
-   also directly upload the application to your 3DS using
+   Our you can build them yourself:
+   ```bash
+   $ cd 3DS
+   $ make release
+   ```
+
+3. Install `ctroller.cia` with the CIA-manager of your choice.
+
+   If you want to install the 3DSX-executable:
+
+   Copy `ctroller.{3dsx,smdh}` to `/3ds/ctroller/` on your SD card. You can also
+   directly upload the application to your 3DS using
    [upload.sh](./3DS/upload.sh) (do not blindly execute unknown scrips, I'm not
    responsible if this accidentally deletes your SD card or unfreezes your
    fridge).  To do so, start a FTP server (such as

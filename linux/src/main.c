@@ -154,7 +154,9 @@ int main(int argc, char *argv[])
         } else {
             connected = 0;
             memset(&hid, 0, sizeof(hid));
-            puts("Timeout waiting for 3DS. Retrying...");
+            if (!options.daemonize) {
+                puts("Timeout waiting for 3DS. Retrying...");
+            }
         }
     }
 

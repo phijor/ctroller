@@ -149,6 +149,13 @@ int main(int argc, char *argv[])
                        (hid.version & 0x00f0) >> 4,
                        (hid.version & 0x000f) >> 0);
                 connected = 1;
+                if (hid.version != CTROLLER_VERSION) {
+                    fprintf(stderr,
+                            "Server version (%#04x) and client version "
+                            "(%#04x) differ.\n",
+                            CTROLLER_VERSION,
+                            hid.version);
+                }
             }
             ctroller_write_hid_info(&hid);
         } else {

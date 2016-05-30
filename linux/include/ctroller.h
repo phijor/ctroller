@@ -5,8 +5,19 @@
 
 #include "hid.h"
 
+#define _STRINGIFY(a) #a
+#define STRINGIFY(a) _STRINGIFY(a)
+
+#define MAKEBCDVER(major, minor, patch)                                        \
+    ((major & 0xf) << 8 | (minor & 0xf) << 4 | (patch & 0xf))
+
+#define CTROLLER_VERSION_STRING                                                \
+    STRINGIFY(VERSION_MAJOR)                                                   \
+    "." STRINGIFY(VERSION_MINOR) "." STRINGIFY(VERSION_PATCH)
+
+#define CTROLLER_VERSION MAKEBCDVER(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
+
 #define PACKET_MAGIC 0x3d5c
-#define PACKET_VERSION 0x0001
 #define PACKET_SIZE (2 * sizeof(uint16_t) + sizeof(struct hidinfo))
 
 #define UINPUT_DEFAULT_DEVICE "/dev/uinput"

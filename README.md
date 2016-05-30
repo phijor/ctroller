@@ -31,8 +31,10 @@ the `debug` target for development.
 
 ## Installation
 
-If you are using Arch Linux,
-[here's](https://aur.archlinux.org/packages/ctroller-git/) the AUR package.
+If you are using Arch Linux, install
+[ctroller-git](https://aur.archlinux.org/packages/ctroller-git/) from the AUR.
+Or use [ctroller-bin](https://aur.archlinux.org/packages/ctroller-bin/) if you
+do not want to set up the 3DS toolchain.
 
 1. Install the server to your system by running `make install`. This is
    equivalent to:
@@ -48,7 +50,7 @@ If you are using Arch Linux,
 2. Download the [latest release of the 3DS
    binaries](https://github.com/phijor/ctroller/releases/latest).
 
-   Our you can build them yourself:
+   Or you can build them yourself:
    ```bash
    $ cd 3DS
    $ make release

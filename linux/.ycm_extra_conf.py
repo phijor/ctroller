@@ -43,6 +43,9 @@ flags = [
     '-I', '/usr/include',
     '--sysroot=/usr',
     '-fsanitize=undefined',
+    '-DVERSION_MAJOR=0',
+    '-DVERSION_MINOR=0',
+    '-DVERSION_PATCH=0',
 ]
 
 

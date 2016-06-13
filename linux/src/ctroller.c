@@ -24,8 +24,9 @@ static struct {
     int socket;
     int uinput_keys;
     int uinput_touchscreen;
+    int uinput_gyroscope;
 } ctroller = {
-    -1, -1, -1,
+    -1, -1, -1, -1,
 };
 
 struct sockaddr listen_addr;
@@ -123,6 +124,16 @@ int ctroller_uinput_init(const char *uinput_device)
         return -1;
     }
     ctroller.uinput_touchscreen = fd;
+
+    fd = gyroscope_create(uinput_device);
+    if (fd < 0) {
+        close(ctroller.uinput_touchscreen);
+        ctroller.uinput_touchscreen = -1;
+        close(ctroller.uinput_keys);
+        ctroller.uinput_keys = -1;
+        return -1;
+    }
+    ctroller.uinput_gyroscope = fd;
     return 0;
 }
 
@@ -211,11 +222,10 @@ inline int ctroller_unpack_hid_info(unsigned char *sendbuf, struct hidinfo *hid)
     unpack = ctroller_unpack_int16_t(unpack, &hid->cstick.dx);
     unpack = ctroller_unpack_int16_t(unpack, &hid->cstick.dy);
 
-#ifdef USE_GYRO
     unpack = ctroller_unpack_int16_t(unpack, &hid->gyro.x);
     unpack = ctroller_unpack_int16_t(unpack, &hid->gyro.y);
     unpack = ctroller_unpack_int16_t(unpack, &hid->gyro.z);
-#endif // USE_GYRO
+
     return unpack - sendbuf;
 }
 
@@ -223,6 +233,7 @@ int ctroller_write_hid_info(struct hidinfo *hid)
 {
     gamepad_write(ctroller.uinput_keys, hid);
     touchscreen_write(ctroller.uinput_touchscreen, hid);
+    gyroscope_write(ctroller.uinput_gyroscope, hid);
     return 0;
 }
 

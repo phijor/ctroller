@@ -3,6 +3,7 @@
 
 #include <devices/gamepad.h>
 #include <devices/touchscreen.h>
+#include <devices/gyroscope.h>
 
 #include <stddef.h>
 #include <stdint.h>

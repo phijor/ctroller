@@ -15,6 +15,7 @@ int hidCollectData(struct hidInfo *info)
     hidCircleRead(&info->circlepad);
     hidGyroRead(&info->gyro);
     hidCstickRead(&info->cstick);
+    hidAccelRead(&info->accel);
 
     return 0;
 }

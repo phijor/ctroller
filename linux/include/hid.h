@@ -59,6 +59,12 @@ struct gyrorate {
     int16_t z;
 };
 
+struct accelrate {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+};
+
 struct hidinfo {
     uint16_t version;
     struct {
@@ -70,6 +76,7 @@ struct hidinfo {
     struct circlepos cstick;
     struct touchpos touchscreen;
     struct gyrorate gyro;
+    struct accelrate accel;
 };
 
 #endif /* ----- #ifndef HID_H  ----- */

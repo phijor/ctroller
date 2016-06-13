@@ -16,6 +16,7 @@ struct hidInfo {
     circlePosition cstick;
     touchPosition touchscreen;
     angularRate gyro;
+    accelVector accel;
 };
 
 int hidCollectData(struct hidInfo*);

@@ -180,6 +180,11 @@ int ctrollerPackHIDInfo(packet_hid_t packet, const struct hidInfo *hid)
     bufptr = pack_int16_t(bufptr, hid->gyro.x);
     bufptr = pack_int16_t(bufptr, hid->gyro.y);
     bufptr = pack_int16_t(bufptr, hid->gyro.z);
+
+    bufptr = pack_int16_t(bufptr, hid->accel.x);
+    bufptr = pack_int16_t(bufptr, hid->accel.y);
+    bufptr = pack_int16_t(bufptr, hid->accel.z);
+
     return bufptr - packet;
 }
 

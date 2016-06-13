@@ -217,6 +217,10 @@ inline int ctroller_unpack_hid_info(unsigned char *sendbuf, struct hidinfo *hid)
     unpack = ctroller_unpack_int16_t(unpack, &hid->gyro.y);
     unpack = ctroller_unpack_int16_t(unpack, &hid->gyro.z);
 
+    unpack = ctroller_unpack_int16_t(unpack, &hid->accel.x);
+    unpack = ctroller_unpack_int16_t(unpack, &hid->accel.y);
+    unpack = ctroller_unpack_int16_t(unpack, &hid->accel.z);
+
     return unpack - sendbuf;
 }
 

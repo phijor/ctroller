@@ -93,6 +93,12 @@ static const uint16_t axis[] = {
 
 #define NUMEVENTS (arrsize(keys) + arrsize(axis) + 1)
 
+struct device_context device_gamepad = {
+    -1,
+    gamepad_write,
+    gamepad_create,
+};
+
 int gamepad_create(const char *uinput_device)
 {
     int uinputfd = device_open(uinput_device);

@@ -22,11 +22,14 @@
 
 static struct {
     int socket;
-    int uinput_keys;
-    int uinput_touchscreen;
-    int uinput_gyroscope;
+    struct device_context *devices[DEVICES_COUNT];
 } ctroller = {
-    -1, -1, -1, -1,
+    .socket = -1,
+    .devices = {
+        &device_gamepad,
+        &device_touchscreen,
+        &device_gyroscope,
+    },
 };
 
 struct sockaddr listen_addr;
@@ -110,30 +113,18 @@ int ctroller_uinput_init(const char *uinput_device)
         uinput_device = UINPUT_DEFAULT_DEVICE;
     }
 
-    int fd;
-    fd = gamepad_create(uinput_device);
-    if (fd < 0) {
-        return -1;
+    for (size_t i = 0; i < arrsize(ctroller.devices); i++) {
+        int fd = ctroller.devices[i]->create(uinput_device);
+        if (fd < 0) {
+            for (size_t j = 0; j < i; j++) {
+                close(ctroller.devices[j]->fd);
+                ctroller.devices[j]->fd = -1;
+            }
+            return -1;
+        }
+        ctroller.devices[i]->fd = fd;
     }
-    ctroller.uinput_keys = fd;
 
-    fd = touchscreen_create(uinput_device);
-    if (fd < 0) {
-        close(ctroller.uinput_keys);
-        ctroller.uinput_keys = -1;
-        return -1;
-    }
-    ctroller.uinput_touchscreen = fd;
-
-    fd = gyroscope_create(uinput_device);
-    if (fd < 0) {
-        close(ctroller.uinput_touchscreen);
-        ctroller.uinput_touchscreen = -1;
-        close(ctroller.uinput_keys);
-        ctroller.uinput_keys = -1;
-        return -1;
-    }
-    ctroller.uinput_gyroscope = fd;
     return 0;
 }
 
@@ -231,9 +222,9 @@ inline int ctroller_unpack_hid_info(unsigned char *sendbuf, struct hidinfo *hid)
 
 int ctroller_write_hid_info(struct hidinfo *hid)
 {
-    gamepad_write(ctroller.uinput_keys, hid);
-    touchscreen_write(ctroller.uinput_touchscreen, hid);
-    gyroscope_write(ctroller.uinput_gyroscope, hid);
+    for (size_t i = 0; i < arrsize(ctroller.devices); i++) {
+        ctroller.devices[i]->write(ctroller.devices[i]->fd, hid);
+    }
     return 0;
 }
 
@@ -241,9 +232,11 @@ void ctroller_exit()
 {
     close(ctroller.socket);
     ctroller.socket = -1;
-    ioctl(ctroller.uinput_keys, UI_DEV_DESTROY);
-    ctroller.uinput_keys = -1;
-    ioctl(ctroller.uinput_touchscreen, UI_DEV_DESTROY);
-    ctroller.uinput_touchscreen = -1;
+
+    for (size_t i = 0; i < arrsize(ctroller.devices); i++) {
+        ioctl(ctroller.devices[i]->fd, UI_DEV_DESTROY);
+        ctroller.devices[i]->fd = -1;
+    }
+
     return;
 }

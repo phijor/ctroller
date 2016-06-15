@@ -41,6 +41,12 @@ static const uint16_t axis[] = {
 
 #define NUMEVENTS (arrsize(axis) + 1)
 
+struct device_context device_gyroscope = {
+    -1,
+    gyroscope_write,
+    gyroscope_create,
+};
+
 int gyroscope_create(const char *uinput_device)
 {
     int uinputfd = device_open(uinput_device);

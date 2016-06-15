@@ -37,6 +37,12 @@ static const uint16_t axis[] = {
 
 #define NUMEVENTS (arrsize(keys) + arrsize(axis) + 1)
 
+struct device_context device_touchscreen = {
+    -1,
+    touchscreen_write,
+    touchscreen_create,
+};
+
 int touchscreen_create(const char *uinput_device)
 {
     int uinputfd = device_open(uinput_device);

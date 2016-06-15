@@ -205,7 +205,8 @@ $(OUTPUT).cia: $(BUILD)
 #---------------------------------------------------------------------------------
 dist: release
 	@$(call bold,"Creating distribution-tarball ($(VERSION_STRING))...")
-	@tar -cvf $(TARGET)-$(VERSION_STRING).tar $(TARGET).{cia,3dsx,smdh}
+	@tar -cvf $(TARGET)-$(VERSION_STRING).tar $(TARGET).{cia,3dsx,smdh} \
+		../LICENSE ../README.md
 	@gzip -f $(TARGET)-$(VERSION_STRING).tar
 
 #---------------------------------------------------------------------------------

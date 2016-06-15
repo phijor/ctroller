@@ -26,6 +26,7 @@
 
 #include <3ds/result.h>
 #include <3ds/console.h>
+#include <3ds/env.h>
 
 #include <3ds/services/apt.h>
 #include <3ds/services/hid.h>
@@ -102,17 +103,18 @@ int main(int argc, char **argv)
         goto failure;
     }
 
-    printf("Press " EXIT_DESC " to exit.\n");
+    bool isHomebrew = envIsHomebrew();
+    printf("Press %s to exit.\n", isHomebrew ? EXIT_DESC : "HOME");
     fflush(stdout);
 
-    u32 keys = 0;
     while (aptMainLoop()) {
-        hidScanInput();
-        keys = hidKeysHeld();
 
-        if (keys == EXIT_KEYS) {
-            res = RL_SUCCESS;
-            break;
+        if (isHomebrew) {
+            hidScanInput();
+            if (hidKeysHeld() == EXIT_KEYS) {
+                res = RL_SUCCESS;
+                break;
+            }
         }
 
         if (ctrollerSendHIDInfo()) {

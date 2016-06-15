@@ -6,6 +6,7 @@
 
 int hidCollectData(struct hidInfo *info)
 {
+    hidScanInput();
     info->keys.up   = hidKeysUp();
     info->keys.down = hidKeysDown();
     info->keys.held = hidKeysHeld();

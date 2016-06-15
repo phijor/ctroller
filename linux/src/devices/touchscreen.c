@@ -80,22 +80,29 @@ int touchscreen_write(int uinputfd, struct hidinfo *hid)
     int res;
     static struct input_event events[NUMEVENTS];
 
-    size_t i       = 0;
-    events[i].type = EV_KEY;
-    events[i].code = keys[i];
-    events[i].value =
-        HID_HAS_KEY(hid->keys.held | hid->keys.down, HID_KEY_TOUCH);
+    size_t i  = 0;
+    int touch = HID_HAS_KEY(hid->keys.held, HID_KEY_TOUCH);
+
+    events[i].type  = EV_KEY;
+    events[i].code  = keys[i];
+    events[i].value = touch;
     i++;
 
-    events[i].type  = EV_ABS;
-    events[i].code  = ABS_X;
-    events[i].value = hid->touchscreen.px;
-    i++;
+    // Only report coordinates if a touch is registered, as the touchscreen will
+    // always report to be at (0, 0) otherwise . This prevents screen-pointers,
+    // such as your mouse, to suddenly jump into a corner once lift your stylus
+    // or finger off the touchscreen.
+    if (touch) {
+        events[i].type  = EV_ABS;
+        events[i].code  = ABS_X;
+        events[i].value = hid->touchscreen.px;
+        i++;
 
-    events[i].type  = EV_ABS;
-    events[i].code  = ABS_Y;
-    events[i].value = hid->touchscreen.py;
-    i++;
+        events[i].type  = EV_ABS;
+        events[i].code  = ABS_Y;
+        events[i].value = hid->touchscreen.py;
+        i++;
+    }
 
     events[i].type  = EV_SYN;
     events[i].code  = SYN_REPORT;

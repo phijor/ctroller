@@ -110,7 +110,6 @@ int main(int argc, char **argv)
     while (aptMainLoop()) {
 
         if (isHomebrew) {
-            hidScanInput();
             if (hidKeysHeld() == EXIT_KEYS) {
                 res = RL_SUCCESS;
                 break;

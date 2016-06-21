@@ -89,13 +89,13 @@ int main(int argc, char **argv)
         goto failure;
     }
 
-    u8 isNew3DS = 0;
-    APT_CheckNew3DS(&isNew3DS);
-    util_debug_printf("Running on %s3DS.\n", isNew3DS ? "New" : "Old");
-
-    if (isNew3DS && R_FAILED(res = irrstInit())) {
-        util_presult("irrstInit failed", res);
-        goto irsst_failure;
+    if (R_FAILED(res = hidInit())) {
+        util_presult("hidInit failed", res);
+        goto hid_failure;
+    }
+    if (R_FAILED(res = HIDUSER_EnableAccelerometer())) {
+        util_presult("Failed to enable accelerometer", res);
+        goto accel_failure;
     }
 
     if (R_FAILED(res = ctrollerInit())) {
@@ -128,8 +128,10 @@ int main(int argc, char **argv)
 
     puts("Exiting...");
 failure:
-    irrstExit();
-irsst_failure:
+    HIDUSER_DisableAccelerometer();
+accel_failure:
+    hidExit();
+hid_failure:
     socExit();
 soc_failure:
     free(sock_ctx);

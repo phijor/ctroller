@@ -24,6 +24,12 @@ static const uint16_t axis[] = {
 
 #define NUMEVENTS (arrsize(axis) + 1)
 
+struct device_context device_accelerometer = {
+    -1,
+    accelerometer_write,
+    accelerometer_create,
+};
+
 int accelerometer_create(const char *uinput_device)
 {
     int uinputfd = device_open(uinput_device);

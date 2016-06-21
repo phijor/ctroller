@@ -4,6 +4,7 @@
 #include <devices/gamepad.h>
 #include <devices/touchscreen.h>
 #include <devices/gyroscope.h>
+#include <devices/accelerometer.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -37,6 +38,7 @@ struct device_context {
 extern struct device_context device_gamepad;
 extern struct device_context device_touchscreen;
 extern struct device_context device_gyroscope;
-#define DEVICES_COUNT 3
+extern struct device_context device_accelerometer;
+#define DEVICES_COUNT 4
 
 #endif /* ----- #ifndef DEVICES_H  ----- */

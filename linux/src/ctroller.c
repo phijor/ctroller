@@ -29,6 +29,7 @@ static struct {
         &device_gamepad,
         &device_touchscreen,
         &device_gyroscope,
+        &device_accelerometer,
     },
 };
 

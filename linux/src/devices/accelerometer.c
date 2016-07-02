@@ -16,6 +16,20 @@ static const struct uinput_user_dev accelerometer = {
             .version = 1,
             .bustype = BUS_VIRTUAL,
         },
+    .absmin[ABS_X]  = -500,
+    .absmax[ABS_X]  = 500,
+    .absflat[ABS_X] = 0,
+    .absfuzz[ABS_X] = 10,
+
+    .absmin[ABS_Y]  = -500,
+    .absmax[ABS_Y]  = 500,
+    .absflat[ABS_Y] = 0,
+    .absfuzz[ABS_Y] = 10,
+
+    .absmin[ABS_Z]  = -500,
+    .absmax[ABS_Z]  = 500,
+    .absflat[ABS_Z] = 0,
+    .absfuzz[ABS_Z] = 10,
 };
 
 static const uint16_t axis[] = {

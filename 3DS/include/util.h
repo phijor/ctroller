@@ -54,7 +54,7 @@ __attribute__((format(printf, 1, 2))) void
 util_debug_printf(const char *restrict fmt, ...);
 
 void util_perror(const char *msg);
-void util_presult(const char *msg, Result res);
+void util_presult(const char *msg, Result res) __attribute__((nonnull(1)));
 
 void util_debug_print_delim(void);
 

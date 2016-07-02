@@ -28,6 +28,7 @@
 #include <3ds/console.h>
 #include <3ds/env.h>
 
+#include <3ds/svc.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/hid.h>
 #include <3ds/services/soc.h>
@@ -118,6 +119,12 @@ int main(int argc, char **argv)
 
         if (ctrollerSendHIDInfo()) {
             util_perror("Sending HID info");
+            fflush(stderr);
+            for (int i = 3; i > 0; i--) {
+                util_debug_printf("\rRetrying in %ds... ", i);
+                svcSleepThread(1000000000L);
+            }
+            util_debug_printf("\rRetrying now.\x1b[K\n");
         }
 
         gspWaitForVBlank();

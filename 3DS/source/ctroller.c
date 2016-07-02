@@ -134,13 +134,8 @@ int ctrollerSendHIDInfo(void)
     ctrollerPackHIDInfo(packet, &hid);
 
     res = ctrollerSend(packet, PACKET_SIZE);
-    if (res == -1) {
-        util_perror("HID send");
-    }
-    if (res > 0) {
-        res = 0;
-    }
-    return res;
+    // ctrollerSend returns a negative value on error
+    return (res > 0) ? 0 : res;
 }
 
 #define CTROLLER_PACK_DEFINE(type, packer)                                     \

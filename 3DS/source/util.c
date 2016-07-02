@@ -56,7 +56,7 @@ util_debug_printf(const char *restrict fmt, ...)
 
 void util_perror(const char *msg)
 {
-    char *delim       = (msg == NULL) ? "" : ": ";
+    char *delim       = (msg == NULL) ? "" : ": \n  ";
     char *color       = (errno == 0) ? CONSOLE_GREEN : CONSOLE_RED;
     PrintConsole *tmp = consoleSelect(&debug);
     fprintf(stderr,
@@ -71,7 +71,7 @@ void util_perror(const char *msg)
 
 void util_presult(const char *msg, Result res)
 {
-    char *delim       = (msg == NULL) ? "" : ": ";
+    char *delim       = (msg[0] == '\0') ? "" : ": \n  ";
     char *color       = R_SUCCEEDED(res) ? CONSOLE_GREEN : CONSOLE_RED;
     PrintConsole *tmp = consoleSelect(&debug);
     fprintf(stderr,

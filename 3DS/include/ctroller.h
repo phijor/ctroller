@@ -10,8 +10,21 @@
 
 #if !defined(VERSION_MAJOR) || !defined(VERSION_MINOR) ||                      \
     !defined(VERSION_PATCH)
-#error "VERSION_[MAJOR|MINOR|PATCH] not defined."
+#warning "VERSION_[MAJOR|MINOR|PATCH] not defined. Using defaults."
+
+#ifndef VERSION_MAJOR
+#define VERSION_MAJOR 0
 #endif
+
+#ifndef VERSION_MINOR
+#define VERSION_MINOR 0
+#endif
+
+#ifndef VERSION_PATCH
+#define VERSION_PATCH 0
+#endif
+
+#endif /* ----- #ifndef VERSION_[MAJOR|MINOR|PATCH] ----- */
 
 #define VERSION                                                                \
     STRINGIFY(VERSION_MAJOR)                                                   \

@@ -11,6 +11,24 @@
 #define MAKEBCDVER(major, minor, patch)                                        \
     ((major & 0xf) << 8 | (minor & 0xf) << 4 | (patch & 0xf))
 
+#if !defined(VERSION_MAJOR) || !defined(VERSION_MINOR) ||                      \
+    !defined(VERSION_PATCH)
+#warning "VERSION_[MAJOR|MINOR|PATCH] not defined. Using defaults."
+
+#ifndef VERSION_MAJOR
+#define VERSION_MAJOR 0
+#endif
+
+#ifndef VERSION_MINOR
+#define VERSION_MINOR 0
+#endif
+
+#ifndef VERSION_PATCH
+#define VERSION_PATCH 0
+#endif
+
+#endif /* ----- #ifndef VERSION_[MAJOR|MINOR|PATCH] ----- */
+
 #define CTROLLER_VERSION_STRING                                                \
     STRINGIFY(VERSION_MAJOR)                                                   \
     "." STRINGIFY(VERSION_MINOR) "." STRINGIFY(VERSION_PATCH)

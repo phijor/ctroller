@@ -144,7 +144,7 @@ int ctroller_poll_hid_info(struct hidinfo *hid)
     ufds.fd     = ctroller.socket;
     ufds.events = POLLIN;
 
-    res = poll(&ufds, 1, 3 * 1000);
+    res = poll(&ufds, 1, -1);
     if (res < 0) {
         perror("Error polling 3DS");
         return -1;

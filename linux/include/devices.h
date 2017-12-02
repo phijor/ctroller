@@ -39,6 +39,14 @@ extern struct device_context device_gamepad;
 extern struct device_context device_touchscreen;
 extern struct device_context device_gyroscope;
 extern struct device_context device_accelerometer;
+
+enum DEVICE_ID {
+    DEVICE_GAMEPAD,
+    DEVICE_TOUCHSCREEN,
+    DEVICE_GYROSCOPE,
+    DEVICE_ACCELEROMETER,
+};
+
 #define DEVICES_COUNT 4
 
 #endif /* ----- #ifndef DEVICES_H  ----- */

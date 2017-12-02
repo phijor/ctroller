@@ -42,10 +42,11 @@
 #define PORT_DEFAULT "15708"
 
 typedef unsigned char packet_hid_t[PACKET_SIZE];
+typedef unsigned device_mask_t;
 
-int ctroller_init(const char *uinput_device, const char *port);
+int ctroller_init(const char *uinput_device, const char *port, device_mask_t device_mask);
 int ctroller_listener_init(const char *port);
-int ctroller_uinput_init(const char *uinput_device);
+int ctroller_uinput_init(const char *uinput_device, device_mask_t device_mask);
 
 void ctroller_exit(void);
 

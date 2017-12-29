@@ -137,22 +137,129 @@ int ctroller_uinput_init(const char *uinput_device, device_mask_t device_mask)
     return 0;
 }
 
+#define sizeof_member(s, m) (sizeof(((s *) 0)->m))
+
+struct broadcast_info {
+    int sockfd;
+    char info[sizeof(uint16_t) + sizeof(uint32_t) +
+              sizeof_member(struct addrinfo, ai_addr->sa_data)];
+    struct sockaddr_in addr;
+} broadcast = {-1, {0}, {}};
+
+int ctroller_broadcast_init()
+{
+    struct addrinfo hints;
+    memset(&hints, '\0', sizeof(hints));
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_flags    = AI_PASSIVE;
+
+    struct addrinfo *hostinfo, *info;
+    if (getaddrinfo(NULL, PORT_DEFAULT, &hints, &hostinfo)) {
+        perror("broadcast getaddrinfo");
+        return 1;
+    }
+
+    broadcast.sockfd = -1;
+    for (info = hostinfo; info != NULL; info = info->ai_next) {
+        char ip_str[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &info->ai_addr, ip_str, INET_ADDRSTRLEN);
+        fprintf(stderr, "host ip: %s\n", ip_str);
+        if ((broadcast.sockfd = socket(info->ai_family,
+                                       info->ai_socktype,
+                                       info->ai_protocol)) == -1) {
+            perror("ctroller_broadcast_init: socket");
+            continue;
+        }
+
+        break;
+    }
+
+    if (broadcast.sockfd == -1) {
+        freeaddrinfo(hostinfo);
+        perror("broadcast socket");
+        return 1;
+    }
+
+    if (setsockopt(broadcast.sockfd,
+                   SOL_SOCKET,
+                   SO_BROADCAST,
+                   &(int){1},
+                   sizeof(int))) {
+        freeaddrinfo(hostinfo);
+        perror("broadcast setsockopt(SO_BROADCAST)");
+        return 1;
+    }
+
+    if (setsockopt(broadcast.sockfd,
+                   SOL_SOCKET,
+                   SO_REUSEADDR,
+                   &(int){1},
+                   sizeof(int))) {
+        perror("broadcast setsockopt(SO_REUSEADDR)");
+    }
+
+    // if (bind(broadcast.sockfd, info->ai_addr, info->ai_addrlen) == -1) {
+    //     freeaddrinfo(hostinfo);
+    //     perror("ctroller_broadcast_init: bind");
+    //     return 1;
+    // }
+
+    memset(&broadcast.addr, '\0', sizeof(broadcast.addr));
+    broadcast.addr.sin_family      = AF_INET;
+    broadcast.addr.sin_port        = htons(PORT_BC_NUM_DEFAULT);
+    broadcast.addr.sin_addr.s_addr = INADDR_BROADCAST;
+
+    *((uint16_t *) &broadcast.info[0]) = htons(PACKET_MAGIC);
+    *((uint32_t *) &broadcast.info[2]) = htonl(info->ai_addrlen);
+    memcpy(&broadcast.info[6],
+           info->ai_addr->sa_data,
+           sizeof(info->ai_addr->sa_data));
+
+    freeaddrinfo(hostinfo);
+    return 0;
+}
+
+int ctroller_broadcast()
+{
+    if (broadcast.sockfd == -1) {
+        ctroller_broadcast_init();
+    }
+    int bytes_sent;
+    if ((bytes_sent = sendto(broadcast.sockfd,
+                             broadcast.info,
+                             sizeof(broadcast.info),
+                             0,
+                             (struct sockaddr *) &broadcast.addr,
+                             sizeof(broadcast.addr))) == -1) {
+        perror("broadcast: sendto");
+        return 1;
+    }
+
+    return 0;
+}
+
+int ctroller_broadcast_exit()
+{
+    return close(broadcast.sockfd);
+}
+
 int ctroller_recv(void *buf, size_t len)
 {
     return recvfrom(
         ctroller.socket, buf, len, 0, &listen_addr, &listen_addr_len);
 }
 
-int ctroller_poll_hid_info(struct hidinfo *hid)
+int ctroller_poll_hid_info(struct hidinfo *hid, int timeout)
 {
-    int res = 0;
-    packet_hid_t packet __attribute__((aligned(sizeof(uint32_t))));
+    int res                                                        = 0;
+    packet_hid_t packet __attribute__((aligned(sizeof(uint32_t)))) = {};
     struct pollfd ufds;
 
     ufds.fd     = ctroller.socket;
     ufds.events = POLLIN;
 
-    res = poll(&ufds, 1, -1);
+    res = poll(&ufds, 1, timeout);
     if (res < 0) {
         perror("Error polling 3DS");
         return -1;
@@ -246,6 +353,7 @@ int ctroller_write_hid_info(struct hidinfo *hid)
 
 void ctroller_exit()
 {
+    close(broadcast.sockfd);
     close(ctroller.socket);
     ctroller.socket = -1;
 

@@ -102,7 +102,7 @@ static device_mask_t parse_device_mask(const char *device_list)
 
 int main(int argc, char *argv[])
 {
-    int res = EXIT_SUCCESS;
+    int exit_code = EXIT_SUCCESS;
 
     // clang-format off
     struct options {
@@ -165,8 +165,8 @@ int main(int argc, char *argv[])
 
     if (options.daemonize) {
         printf("Daemonizing %s...\n", program_invocation_short_name);
-        res = daemon(1, 1);
-        if (res == -1) {
+        exit_code = daemon(1, 1);
+        if (exit_code == -1) {
             perror("Failed to daemonize process");
         }
     }
@@ -182,27 +182,48 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Failed to register SIGINT handler.\n");
     }
 
-    printf("Waiting for incoming packets...\n");
+    enum STATE {
+        BROADCASTING,
+        CONNECTING,
+        RECEIVING,
+    } state = BROADCASTING;
 
-    int connected      = 0;
     struct hidinfo hid = {};
     while (1) {
-        res = ctroller_poll_hid_info(&hid);
-        if (res < 0) {
-            fprintf(stderr, "An error occured (%d). Exiting...", res);
-            fflush(stderr);
-            res = EXIT_FAILURE;
+        switch (state) {
+        case BROADCASTING: {
+            if (!options.daemonize) {
+                printf("Advertising server...\n");
+            }
+
+            if (ctroller_broadcast()) {
+                perror("ctroller_broadcast");
+            }
+
+            state = CONNECTING;
             break;
         }
+        case CONNECTING: {
+            int ret = ctroller_poll_hid_info(&hid, 3000);
 
-        if (res != 0) {
-            if (!connected) {
+            if (ret < 0) {
+                fprintf(stderr, "Failed to read HID info: ret=%d\n", ret);
+                exit_code = EXIT_FAILURE;
+                break;
+            }
+
+            if (ret == 0) {
+                state = BROADCASTING;
+                if (!options.daemonize) {
+                    puts("Timeout waiting for 3DS. Retrying...");
+                }
+            } else {
+                state = RECEIVING;
                 printf("Nintendo 3DS connected. (ctroller version "
                        "%01d.%01d.%01d)\n",
                        (hid.version & 0x0f00) >> 8,
                        (hid.version & 0x00f0) >> 4,
                        (hid.version & 0x000f) >> 0);
-                connected = 1;
                 if (hid.version != CTROLLER_VERSION) {
                     fprintf(stderr,
                             "Server version (%#04x) and client version "
@@ -210,18 +231,35 @@ int main(int argc, char *argv[])
                             CTROLLER_VERSION,
                             hid.version);
                 }
+                ctroller_write_hid_info(&hid);
+            }
+            exit_code = EXIT_SUCCESS;
+            break;
+        }
+        case RECEIVING: {
+            int ret = ctroller_poll_hid_info(&hid, -1);
+            if (ret < 0) {
+                fprintf(stderr, "Failed to read HID info: ret=%d\n", ret);
+                exit_code = EXIT_FAILURE;
+            }
+            if (ret == 0) {
+                printf("Nintendo 3DS disconnected. Trying to reconnect...\n");
+                state = BROADCASTING;
+                break;
             }
             ctroller_write_hid_info(&hid);
-        } else {
-            connected = 0;
-            memset(&hid, 0, sizeof(hid));
-            if (!options.daemonize) {
-                puts("Timeout waiting for 3DS. Retrying...");
-            }
+            break;
+        }
+        }
+
+        if (exit_code != EXIT_SUCCESS) {
+            fprintf(stderr, "An error occured (%d). Exiting...", exit_code);
+            fflush(stderr);
+            break;
         }
     }
 
     ctroller_exit();
 
-    return res;
+    return exit_code;
 }

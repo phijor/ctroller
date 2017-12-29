@@ -39,20 +39,25 @@
 #define PACKET_SIZE (2 * sizeof(uint16_t) + sizeof(struct hidinfo))
 
 #define UINPUT_DEFAULT_DEVICE "/dev/uinput"
-#define PORT_DEFAULT "15708"
+#define PORT_NUM_DEFAULT 15708
+#define PORT_BC_NUM_DEFAULT (PORT_NUM_DEFAULT + 1)
+#define PORT_DEFAULT STRINGIFY(PORT_NUM_DEFAULT)
 
 typedef unsigned char packet_hid_t[PACKET_SIZE];
 typedef unsigned device_mask_t;
 
-int ctroller_init(const char *uinput_device, const char *port, device_mask_t device_mask);
+int ctroller_init(const char *uinput_device,
+                  const char *port,
+                  device_mask_t device_mask);
 int ctroller_listener_init(const char *port);
 int ctroller_uinput_init(const char *uinput_device, device_mask_t device_mask);
 
 void ctroller_exit(void);
 
+int ctroller_broadcast();
 int ctroller_recv(void *buf, size_t len);
 
-int ctroller_poll_hid_info(struct hidinfo *);
+int ctroller_poll_hid_info(struct hidinfo *, int timeout);
 int ctroller_unpack_hid_info(unsigned char *sendbuf, struct hidinfo *hid);
 int ctroller_write_hid_info(struct hidinfo *hid);
 

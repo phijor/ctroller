@@ -39,6 +39,8 @@
 #define MAKEBCDVER(major, minor, patch)                                        \
     ((major & 0xf) << 8 | (minor & 0xf) << 4 | (patch & 0xf))
 
+#define VERSION_BCD MAKEBCDVER(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
+
 /** Location of the config directory on the SD card
  **/
 #define CFG_DIR "/ctroller/"
@@ -47,9 +49,13 @@
  **/
 #define CFG_FILE CFG_DIR "ctroller.cfg"
 
+#define CFG_PORT_NUM 15708
+#define CFG_PORT_BC_NUM 15709
+
 /** Port of the server to connect to.
  **/
-#define CFG_PORT "15708"
+#define CFG_PORT STRINGIFY(CFG_PORT_NUM)
+#define CFG_PORT_BC STRINGIFY(CFG_PORT_BC_NUM)
 
 /** Initialize the ctroller client
  **/
@@ -69,6 +75,18 @@ void ctrollerExit(void);
  * @returns < 0 on failure
  **/
 int ctrollerReadServerIP(char *ipstr, size_t len, const char *path);
+
+/** Discover a host on the network
+ *
+ * Listen for broadcast messages on the network and parse them to acquire the
+ * host address.
+ *
+ * @param host_addr Pointer to store host address
+ *
+ * @returns 0 on success
+ * @returns < 0 on failure
+ **/
+int ctrollerDiscoverHosts(uint32_t *host_addr);
 
 /** Magic constant identifying a ctroller packet
  **/

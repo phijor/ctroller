@@ -1,5 +1,6 @@
 #include "ctroller.h"
 #include "devices.h"
+#include "net.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -137,12 +138,19 @@ int ctroller_uinput_init(const char *uinput_device, device_mask_t device_mask)
     return 0;
 }
 
-#define sizeof_member(s, m) (sizeof(((s *) 0)->m))
-
 struct broadcast_info {
+    /* broadcast socket file descriptor */
     int sockfd;
-    char info[sizeof(uint16_t) + sizeof(uint32_t) +
-              sizeof_member(struct addrinfo, ai_addr->sa_data)];
+
+    /* broadcast data: magic number, host version, host address */
+    char info[sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t)];
+
+    /* accessor helper for data in info  */
+#define BRDI_MAGIC(b) ((uint16_t *) &b.info[0])
+#define BRDI_VERSION(b) ((uint16_t *) &b.info[2])
+#define BRDI_ADDR(b) ((uint32_t *) &b.info[4])
+
+    /* broadcast address */
     struct sockaddr_in addr;
 } broadcast = {-1, {0}, {}};
 
@@ -154,17 +162,14 @@ int ctroller_broadcast_init()
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags    = AI_PASSIVE;
 
-    struct addrinfo *hostinfo, *info;
+    struct addrinfo *hostinfo;
     if (getaddrinfo(NULL, PORT_DEFAULT, &hints, &hostinfo)) {
         perror("broadcast getaddrinfo");
         return 1;
     }
 
     broadcast.sockfd = -1;
-    for (info = hostinfo; info != NULL; info = info->ai_next) {
-        char ip_str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &info->ai_addr, ip_str, INET_ADDRSTRLEN);
-        fprintf(stderr, "host ip: %s\n", ip_str);
+    for (struct addrinfo *info = hostinfo; info != NULL; info = info->ai_next) {
         if ((broadcast.sockfd = socket(info->ai_family,
                                        info->ai_socktype,
                                        info->ai_protocol)) == -1) {
@@ -175,8 +180,9 @@ int ctroller_broadcast_init()
         break;
     }
 
+    freeaddrinfo(hostinfo);
+
     if (broadcast.sockfd == -1) {
-        freeaddrinfo(hostinfo);
         perror("broadcast socket");
         return 1;
     }
@@ -186,7 +192,6 @@ int ctroller_broadcast_init()
                    SO_BROADCAST,
                    &(int){1},
                    sizeof(int))) {
-        freeaddrinfo(hostinfo);
         perror("broadcast setsockopt(SO_BROADCAST)");
         return 1;
     }
@@ -199,24 +204,34 @@ int ctroller_broadcast_init()
         perror("broadcast setsockopt(SO_REUSEADDR)");
     }
 
-    // if (bind(broadcast.sockfd, info->ai_addr, info->ai_addrlen) == -1) {
-    //     freeaddrinfo(hostinfo);
-    //     perror("ctroller_broadcast_init: bind");
-    //     return 1;
-    // }
+    struct sockaddr_in host_addr;
+    if (net_get_host_address(NULL, &host_addr, &broadcast.addr) == -1) {
+        perror("net_get_host_address");
+        return 1;
+    }
 
     memset(&broadcast.addr, '\0', sizeof(broadcast.addr));
     broadcast.addr.sin_family      = AF_INET;
     broadcast.addr.sin_port        = htons(PORT_BC_NUM_DEFAULT);
     broadcast.addr.sin_addr.s_addr = INADDR_BROADCAST;
 
-    *((uint16_t *) &broadcast.info[0]) = htons(PACKET_MAGIC);
-    *((uint32_t *) &broadcast.info[2]) = htonl(info->ai_addrlen);
-    memcpy(&broadcast.info[6],
-           info->ai_addr->sa_data,
-           sizeof(info->ai_addr->sa_data));
+    char bcaddr[INET_ADDRSTRLEN], haddr[INET_ADDRSTRLEN];
 
-    freeaddrinfo(hostinfo);
+    inet_ntop(
+        AF_INET, &broadcast.addr.sin_addr.s_addr, bcaddr, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &host_addr.sin_addr.s_addr, haddr, INET_ADDRSTRLEN);
+
+    fprintf(stderr,
+            "host address: %s:%d, broadcast address: %s:%d\n",
+            haddr,
+            PORT_NUM_DEFAULT,
+            bcaddr,
+            PORT_BC_NUM_DEFAULT);
+
+    *BRDI_MAGIC(broadcast)   = htons(PACKET_MAGIC);
+    *BRDI_VERSION(broadcast) = htons(CTROLLER_VERSION);
+    *BRDI_ADDR(broadcast)    = htonl(host_addr.sin_addr.s_addr);
+
     return 0;
 }
 

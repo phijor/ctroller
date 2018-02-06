@@ -1,16 +1,16 @@
 #include "ctroller.h"
 
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
 #include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 
-#include "util.h"
 #include "hid.h"
+#include "util.h"
 
 struct peer {
     int socket;
@@ -19,7 +19,9 @@ struct peer {
 };
 
 static struct peer SERVER = {
-    .socket = -1, .addr_list = NULL, .addr = NULL,
+    .socket    = -1,
+    .addr_list = NULL,
+    .addr      = NULL,
 };
 
 // static int isNew3DS = 0;
@@ -39,17 +41,31 @@ Result ctrollerInit(void)
 
     char ctroller_ip[INET_ADDRSTRLEN];
     char server_ip[INET_ADDRSTRLEN];
-    if (ctrollerReadServerIP(server_ip, INET_ADDRSTRLEN, CFG_FILE) < 0) {
-        util_perror("Reading server IP");
-        return MAKERESULT(RL_USAGE, RS_NOTFOUND, RM_APPLICATION, RD_NOT_FOUND);
+    uint32_t server_ip_num;
+
+    const char *cfg = "dynamic";
+
+    if (ctrollerDiscoverHosts(&server_ip_num) < 0) {
+        util_perror("failed to discover host, falling back to config file\n");
+
+        cfg = CFG_FILE;
+        if (ctrollerReadServerIP(server_ip, INET_ADDRSTRLEN, CFG_FILE) < 0) {
+            util_perror("Reading server IP");
+            return MAKERESULT(
+                RL_USAGE, RS_NOTFOUND, RM_APPLICATION, RD_NOT_FOUND);
+        }
+
+    } else {
+        inet_ntop(AF_INET, &server_ip_num, server_ip, INET_ADDRSTRLEN);
     }
 
     util_debug_printf("Initializing ctroller...\n"
                       "- Version: " VERSION_BUILD " (" __DATE__ ")\n"
-                      "- Config:  " CFG_FILE "\n"
+                      "- Config:  %s\n"
                       "- Client:  %s\n"
                       "- Server:  %s\n"
                       "- Port:    " CFG_PORT "\n",
+                      cfg,
                       inet_ntop(ctroller_addr.sin_family,
                                 &ctroller_addr.sin_addr,
                                 ctroller_ip,
@@ -78,7 +94,7 @@ Result ctrollerInit(void)
     if (inf == NULL || SERVER.socket < 0) {
         freeaddrinfo(SERVER.addr_list);
         SERVER.addr_list = NULL;
-        errno = EADDRNOTAVAIL;
+        errno            = EADDRNOTAVAIL;
         return MAKERESULT(
             RL_PERMANENT, RS_NOTFOUND, RM_APPLICATION, RD_NOT_FOUND);
     }
@@ -108,6 +124,98 @@ int ctrollerReadServerIP(char *ipstr, size_t len, const char *path)
     }
 
     return res;
+}
+
+int ctrollerDiscoverHosts(uint32_t *host_addr)
+{
+    int ret;
+    int sockfd;
+    struct addrinfo hints = {}, *hostinfo, *info = NULL;
+
+    hints.ai_flags    = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_flags    = AI_PASSIVE;
+
+    if ((ret = getaddrinfo(NULL, CFG_PORT_BC, &hints, &hostinfo))) {
+        fprintf(stderr,
+                "ctrollerDiscoverHosts: getaddrinfo: %s\n",
+                gai_strerror(ret));
+        return -1;
+    }
+
+    for (info = hostinfo; info != NULL; info = info->ai_next) {
+        sockfd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+        if (sockfd < 0) {
+            perror("ctrollerDiscoverHosts: socket");
+            continue;
+        }
+
+        ret = bind(sockfd, info->ai_addr, info->ai_addrlen);
+        if (ret == -1) {
+            perror("ctrollerDiscoverHosts: bind");
+            close(sockfd);
+            continue;
+        }
+
+        freeaddrinfo(hostinfo);
+        break;
+    }
+
+    if (info == NULL) {
+        fprintf(stderr, "ctrollerDiscoverHosts: failed to bind socket\n");
+        return -1;
+    }
+
+    uint16_t brd_package[2];
+
+#define BRDI_MAGIC(p) (ntohs(p[0]))
+#define BRDI_VERSION(p) (ntohs(p[1]))
+
+    printf("Waiting for host advertisement...\n");
+
+    int nbytes;
+    struct sockaddr_in host_saddr;
+    if ((nbytes = recvfrom(sockfd,
+                           brd_package,
+                           sizeof(brd_package),
+                           0,
+                           (struct sockaddr *) &host_saddr,
+                           &((socklen_t){sizeof(host_saddr)}))) == -1) {
+        perror("ctrollerDiscoverHosts: recvfrom");
+        return -1;
+    }
+
+    char ip_str[INET_ADDRSTRLEN];
+    fprintf(stderr,
+            "received advertisement from %s\n",
+            inet_ntop(AF_INET, &host_saddr.sin_addr, ip_str, INET_ADDRSTRLEN));
+
+    if (nbytes < (int) sizeof(brd_package)) {
+        fprintf(
+            stderr, "ctrollerDiscoverHosts: package too short (%db)\n", nbytes);
+        return -1;
+    }
+
+    if (BRDI_MAGIC(brd_package) != PACKET_MAGIC) {
+        fprintf(stderr, "ctrollerDiscoverHosts: invalid package header\n");
+        return -1;
+    }
+
+    uint16_t ver = BRDI_VERSION(brd_package);
+    fprintf(stderr,
+            "host version: %d.%d.%d)\n",
+            (ver >> 8) & 0xf,
+            (ver >> 4) & 0xf,
+            ver & 0xf);
+    if (ver != VERSION_BCD) {
+        fputs("ctrollerDiscoverHosts: WARNING: version mismatch (client "
+              "version: " VERSION "\n",
+              stderr);
+    }
+
+    *host_addr = host_saddr.sin_addr.s_addr;
+
+    return 0;
 }
 
 int ctrollerSend(const void *buf, size_t len)
@@ -142,7 +250,7 @@ int ctrollerSendHIDInfo(void)
     static inline uint8_t *pack_##type(uint8_t *buf, type val)                 \
     {                                                                          \
         type *target = (type *) buf;                                           \
-        *target = packer(val);                                                 \
+        *target      = packer(val);                                            \
         return buf + sizeof(type);                                             \
     }
 

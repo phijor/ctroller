@@ -67,6 +67,17 @@ int main(int argc, char **argv)
         goto ac_failure;
     }
 
+    u32 wifi = 0;
+    if (R_FAILED(res = ACU_GetWifiStatus(&wifi))) {
+        util_presult("ACU_GetWifiStatus failed", res);
+        fprintf(stderr, "Did you enable Wifi?\n");
+        goto wifi_check_failure;
+    }
+    if (!wifi) {
+        fprintf(stderr, "Wifi disabled.\n");
+        goto wifi_check_failure;
+    }
+
     if ((sock_ctx = memalign(SOCU_BUFSZ, SOCU_ALIGN)) == NULL) {
         util_perror("Allocating SOC buffer");
         res = MAKERESULT(
@@ -77,17 +88,6 @@ int main(int argc, char **argv)
     if (R_FAILED(res = socInit(sock_ctx, SOCU_BUFSZ))) {
         util_presult("socInit failed", res);
         goto soc_failure;
-    }
-
-    u32 wifi = 0;
-    if (R_FAILED(res = ACU_GetWifiStatus(&wifi))) {
-        util_presult("ACU_GetWifiStatus failed", res);
-        fprintf(stderr, "Did you enable Wifi?\n");
-        goto failure;
-    }
-    if (!wifi) {
-        fprintf(stderr, "Wifi disabled.\n");
-        goto failure;
     }
 
     if (R_FAILED(res = hidInit())) {
@@ -143,11 +143,12 @@ hid_failure:
 soc_failure:
     free(sock_ctx);
 soc_alloc_failure:
+wifi_check_failure:
     acExit();
 ac_failure:
-    gfxExit();
     if (R_FAILED(res)) {
         util_hang(res);
     }
+    gfxExit();
     return res;
 }

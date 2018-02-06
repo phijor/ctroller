@@ -145,9 +145,9 @@ soc_failure:
 soc_alloc_failure:
     acExit();
 ac_failure:
-    gfxExit();
     if (R_FAILED(res)) {
         util_hang(res);
     }
+    gfxExit();
     return res;
 }

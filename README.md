@@ -1,3 +1,13 @@
+# Deprecation notice
+
+This project is no longer maintained, as I have moved on to other projects.
+It might still work in an up to date homebrew environment but this is not
+guaranteed.  Feel free to fork the project and continue it according to its
+license, that's why its open source :)  I'll try answering any questions you
+might have, if my schedule allows for it.
+
+One day I might come back to `ctroller`.
+
 # ctroller
 
 *ctroller* lets you use your 3DS as an input device for your Linux system via
